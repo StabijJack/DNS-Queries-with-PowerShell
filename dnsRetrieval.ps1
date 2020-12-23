@@ -46,7 +46,6 @@ foreach ($domain in $domains) {
 $domainErrorLog | Out-File $domainExistsNotFile
 $domainNotConformLog | Out-File $domainExistsNotConformFile
 
-$subDomainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExists.csv"
 $subDomainExistsNotFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.log"
 $subDomainExistsNotConformFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.log"
 
@@ -54,7 +53,7 @@ $subDomainErrorLog = @()
 $subDomainNotConformLog = @()
 
 foreach ($subDomain in $subDomains) {
-    $subDomainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "-" + $subDomain + "-" +"SubDomainExists.csv"
+    $subDomainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExists-" + $subDomain + "-" +".csv"
     foreach ($domain in $domainsExist) {
         try {        
             $dnsRecord = 

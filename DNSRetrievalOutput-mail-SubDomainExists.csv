@@ -1,8 +1,0 @@
-"Address";"IPAddress";"QueryType";"IP4Address";"Name";"Type";"CharacterSet";"Section";"DataLength";"TTL"
-"185.182.57.161";"185.182.57.161";"A";"185.182.57.161";"mail.presentdordrecht.nl";"A";"Unicode";"Answer";"4";"3440"
-"178.79.146.26";"178.79.146.26";"A";"178.79.146.26";"mail.stichtingpresent.nl";"A";"Unicode";"Answer";"4";"1439"
-"185.182.57.161";"185.182.57.161";"A";"185.182.57.161";"mail.presenthaarlem.nl";"A";"Unicode";"Answer";"4";"3599"
-"185.182.57.161";"185.182.57.161";"A";"185.182.57.161";"mail.presentmaassluis.nl";"A";"Unicode";"Answer";"4";"3599"
-"185.182.57.161";"185.182.57.161";"A";"185.182.57.161";"mail.presentpapendrecht.nl";"A";"Unicode";"Answer";"4";"3185"
-"178.79.146.26";"178.79.146.26";"A";"178.79.146.26";"mail.presentnederland.nl";"A";"Unicode";"Answer";"4";"1439"
-"185.182.57.161";"185.182.57.161";"A";"185.182.57.161";"mail.presentdordrecht-papendrecht.nl";"A";"Unicode";"Answer";"4";"3599"
