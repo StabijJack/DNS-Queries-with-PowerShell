@@ -18,11 +18,10 @@ Remove-Item  $allOutputFiles
 $allErrorFiles = $ProgramDirectory + $filePrefix + $fileErrorPrefix + "*.log"
 Remove-Item  $allErrorFiles
 
-$domainsExist = @()
-$ErrorLog = @()
-$NotConformLog = @()
-
 # check domain exists
+$domainsExist = @()
+$domainErrorLog = @()
+$domainNotConformLog = @()
 $domainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "DomainExists.csv"
 $domainExistsNotFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.log"
 $domainExistsNotConformFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.log"
@@ -41,13 +40,11 @@ foreach ($domain in $domains) {
         }
     }
     catch {
-        $errorlog += "$domain"
+        $domainErrorLog += "$domain"
     }
 }
-$ErrorLog | Out-File $domainExistsNotFile
-$ErrorLog = @()
-$NotConformLog | Out-File $domainExistsNotConformFile
-$NotConformLog = @()
+$domainErrorLog | Out-File $domainExistsNotFile
+$domainNotConformLog | Out-File $domainExistsNotConformFile
 
 
 
