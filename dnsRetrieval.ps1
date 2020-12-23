@@ -46,29 +46,35 @@ foreach ($domain in $domains) {
 $domainErrorLog | Out-File $domainExistsNotFile
 $domainNotConformLog | Out-File $domainExistsNotConformFile
 
+$subDomainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExists.csv"
+$subDomainExistsNotFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.log"
+$subDomainExistsNotConformFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.log"
 
+$subDomainErrorLog = @()
+$subDomainNotConformLog = @()
 
-# foreach ($subDomain in $subDomains) {
-#     foreach ($domain in $domainsExist) {
-#         try {        
-#             $dnsRecord = 
-#             Resolve-DnsName "$subDomain.$domain" -Type A -Server $DNSServerList -ErrorAction Stop
-#             try {
-#                 $dnsRecord | Export-Csv "E:\languages\PowerShell\dnsRetrieval_ouput_$subDomain.csv" -NoTypeInformation -append -Delimiter ";"
-#             }
-#             catch {
-#                 $NotConformLog += "$domain.$subDomain " + $dnsRecord.Type
-#                 <#                write " ==================not to file =================== " $dnsRecord#>
+foreach ($subDomain in $subDomains) {
+    $subDomainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "-" + $subDomain + "-" +"SubDomainExists.csv"
+    foreach ($domain in $domainsExist) {
+        try {        
+            $dnsRecord = 
+            Resolve-DnsName "$subDomain.$domain" -Type A -Server $DNSServerList -ErrorAction Stop
+            try {
+                $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
+            }
+            catch {
+                $subDomainNotConformLog += "$domain.$subDomain " + $dnsRecord.Type
+                <#                write " ==================not to file =================== " $dnsRecord#>
             
-#             }
-#         }
-#         catch {
-#             $errorlog += "$subDomain.$domain"
-#         }
-#     }
-# }
+            }
+        }
+        catch {
+            $subDomainErrorLog += "$subDomain.$domain"
+        }
+    }
+}
 
-# $ErrorLog | Out-File "E:\languages\PowerShell\dnsRetrieval_ouput_Domains_not_found.csv"
-# $NotConformLog | Out-File "E:\languages\PowerShell\dnsRetrieval_ouput_Domains_not_conform_first_domain.csv"
+$subDomainErrorLog | Out-File $subDomainExistsNotFile
+$subDomainNotConformLog | Out-File $subDomainExistsNotConformFile
 
 write-output "script has finished running"
