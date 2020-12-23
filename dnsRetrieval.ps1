@@ -1,30 +1,44 @@
-﻿$programDirectory = "F:\OneDrive\OneDrive - Present Nederland\DNS-Checks\PowerShell\"
+﻿Add-Type -AssemblyName System.Windows.Forms
+$fileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
+    InitialDirectory = [Environment]::GetFolderPath('desktop') 
+    Filter = 'txt (*.txt)|*.txt'
+}
+
+$fileBrowser.Title = 'select domains file'
+$null = $fileBrowser.ShowDialog()
+$domainsInputFile = $fileBrowser.filename
+
+$fileBrowser.InitialDirectory = $fileBrowser.FileName
+$dataDirectory = Split-Path $fileBrowser.filename -parent 
+$dataDirectory += '\'
+
+$fileBrowser.Title = 'select CNAME SubDomain file'
+$null = $fileBrowser.ShowDialog()
+$subDomainsInputFile = $fileBrowser.filename
+
 $filePrefix = "DNSRetrieval"
-$fileInputPrefix = "Input"
 $fileOutputPrefix = "Output"
 $fileErrorPrefix = "ERROR"
 $DNSServerList = @('8.8.8.8', '8.8.4.4')
 
-$domainsInputFile = $ProgramDirectory + $filePrefix + $fileInputPrefix + "DomainNames.txt"
 $domains = get-content $DomainsInputFile
 
-$subDomainsInputFile = $ProgramDirectory + $filePrefix + $fileInputPrefix + "SubDomainNames.txt"
 $subDomains = get-content $subDomainsInputFile
 
 # delete old output files
-$allOutputFiles = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "*.csv"
+$allOutputFiles = $dataDirectory + $filePrefix + $fileOutputPrefix + "*.csv"
 Remove-Item  $allOutputFiles
 # delete old ERROR files
-$allErrorFiles = $ProgramDirectory + $filePrefix + $fileErrorPrefix + "*.log"
+$allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*.log"
 Remove-Item  $allErrorFiles
 
 # check domain exists
 $domainsExist = @()
 $domainErrorLog = @()
 $domainNotConformLog = @()
-$domainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "DomainExists.csv"
-$domainExistsNotFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.log"
-$domainExistsNotConformFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.log"
+$domainExistsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExists.csv"
+$domainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.log"
+$domainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.log"
 
 foreach ($domain in $domains) {
     try {        
@@ -46,14 +60,15 @@ foreach ($domain in $domains) {
 $domainErrorLog | Out-File $domainExistsNotFile
 $domainNotConformLog | Out-File $domainExistsNotConformFile
 
-$subDomainExistsNotFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.log"
-$subDomainExistsNotConformFile =$ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.log"
+$subDomainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.log"
+$subDomainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.log"
 
 $subDomainErrorLog = @()
 $subDomainNotConformLog = @()
 
 foreach ($subDomain in $subDomains) {
-    $subDomainExistsFile = $ProgramDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExists-" + $subDomain + "-" +".csv"
+    $subDomainWithoutPoint = $subDomain.replace('.','')
+    $subDomainExistsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExists-" + $subDomainWithoutPoint + ".csv"
     foreach ($domain in $domainsExist) {
         try {        
             $dnsRecord = 
