@@ -1,6 +1,6 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
 $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
-    InitialDirectory = [Environment]::GetFolderPath('desktop') 
+    InitialDirectory = [Environment]::GetFolderPath('personal') 
     Filter = 'txt (*.txt)|*.txt'
 }
 
@@ -20,6 +20,7 @@ $filePrefix = "DNSRetrieval"
 $fileOutputPrefix = "Output"
 $fileErrorPrefix = "ERROR"
 $DNSServerList = @('8.8.8.8', '8.8.4.4')
+$DNSTypes = @('MX','SOA','TXT','NS')
 
 $domains = get-content $DomainsInputFile
 
@@ -59,6 +60,37 @@ foreach ($domain in $domains) {
 }
 $domainErrorLog | Out-File $domainExistsNotFile
 $domainNotConformLog | Out-File $domainExistsNotConformFile
+
+$DomainTypeExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNot.log"
+$DomainTypeExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNotConform.log"
+
+$DomainTypeErrorLog = @()
+$DomainTypeNotConformLog = @()
+
+foreach ($DNSType in $DNSTypes) {
+    $DomainTypeWithoutPoint = $DNSType.replace('.','')
+    $DomainTypeExistsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExists-" + $DomainTypeWithoutPoint + ".csv"
+    foreach ($domain in $domainsExist) {
+        try {        
+            $dnsRecord = 
+            Resolve-DnsName $domain -Type $DNSType -Server $DNSServerList -ErrorAction Stop
+            try {
+                $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+            }
+            catch {
+                $DomainTypeNotConformLog += "$domain.$DNSType " + $dnsRecord.Type
+                <#                write " ==================not to file =================== " $dnsRecord#>
+            
+            }
+        }
+        catch {
+            $DomainTypeErrorLog += $domain + '.' + $DNSType
+        }
+    }
+}
+
+$DomainTypeErrorLog | Out-File $DomainTypeExistsNotFile
+$DomainTypeNotConformLog | Out-File $DomainTypeExistsNotConformFile
 
 $subDomainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.log"
 $subDomainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.log"
