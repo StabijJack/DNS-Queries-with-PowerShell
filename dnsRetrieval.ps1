@@ -47,6 +47,10 @@ Remove-Item  $allOutputFiles
 # delete old ERROR files
 $allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*"
 Remove-Item  $allErrorFiles
+# Expand all TXT strings to File
+$allTXTStringsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "allTXTStrings.csv"
+$AllTXTStrings =@('domainKey;String')
+
 # check domain exists and get A record
 $domainsExist = @()
 $domainErrorLog = @('Domain')
@@ -87,6 +91,10 @@ foreach ($DNSType in $DNSTypes) {
         try {        
             $dnsRecord = 
             Resolve-DnsName $domain -Type $DNSType -Server $DNSServerList -ErrorAction Stop
+            if($DnsRecord.Type -eq 'TXT'){
+                $string = $dnsRecord |Select-Object -ExpandProperty strings
+                $AllTXTStrings += "$domain;$string"
+            }
             try {
                 $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
             }
@@ -120,8 +128,13 @@ foreach ($subDomainDNSType in $subDomains) {
         try {        
             $dnsRecord = 
             Resolve-DnsName "$subDomain.$domain" -Type $DNSType -Server $DNSServerList -ErrorAction Stop
+            if($dnsRecord.Type -eq 'TXT'){
+                $string = $dnsRecord |Select-Object -ExpandProperty strings
+                $AllTXTStrings += "$subDomain.$domain;$string"
+            }
+
             try {
-                $dnsRecord |Select-Object * | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
+                $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
             }
             catch {
                 $subDomainNotConformLog += "$domain;$subDomain"
@@ -137,4 +150,5 @@ foreach ($subDomainDNSType in $subDomains) {
 $subDomainErrorLog | Out-File $subDomainExistsNotFile
 $subDomainNotConformLog | Out-File $subDomainExistsNotConformFile
 
+$AllTXTStrings |Out-File $allTXTStringsFile
 write-output "script has finished running"
