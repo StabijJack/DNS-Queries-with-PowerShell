@@ -30,7 +30,7 @@ $subDomains = get-content $subDomainsInputFile
 $allOutputFiles = $dataDirectory + $filePrefix + $fileOutputPrefix + "*.csv"
 Remove-Item  $allOutputFiles
 # delete old ERROR files
-$allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*.log"
+$allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*.txt"
 Remove-Item  $allErrorFiles
 
 # check domain exists
@@ -38,8 +38,8 @@ $domainsExist = @()
 $domainErrorLog = @()
 $domainNotConformLog = @()
 $domainExistsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExists.csv"
-$domainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.log"
-$domainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.log"
+$domainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.txt"
+$domainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.txt"
 
 foreach ($domain in $domains) {
     try {        
@@ -50,7 +50,7 @@ foreach ($domain in $domains) {
         }
         catch {
             $NotConformLog += $domain + $dnsRecord.Type
-            <# write " ==================not to file =================== " $dnsRecord#>
+            Write-Output " ==================not to file =================== " $dnsRecord
         
         }
     }
@@ -61,8 +61,8 @@ foreach ($domain in $domains) {
 $domainErrorLog | Out-File $domainExistsNotFile
 $domainNotConformLog | Out-File $domainExistsNotConformFile
 
-$DomainTypeExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNot.log"
-$DomainTypeExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNotConform.log"
+$DomainTypeExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNot.txt"
+$DomainTypeExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNotConform.txt"
 
 $DomainTypeErrorLog = @()
 $DomainTypeNotConformLog = @()
@@ -79,7 +79,7 @@ foreach ($DNSType in $DNSTypes) {
             }
             catch {
                 $DomainTypeNotConformLog += "$domain.$DNSType " + $dnsRecord.Type
-                <#                write " ==================not to file =================== " $dnsRecord#>
+                Write-Output " ==================not to file =================== " $dnsRecord
             
             }
         }
@@ -92,8 +92,8 @@ foreach ($DNSType in $DNSTypes) {
 $DomainTypeErrorLog | Out-File $DomainTypeExistsNotFile
 $DomainTypeNotConformLog | Out-File $DomainTypeExistsNotConformFile
 
-$subDomainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.log"
-$subDomainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.log"
+$subDomainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.txt"
+$subDomainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.txt"
 
 $subDomainErrorLog = @()
 $subDomainNotConformLog = @()
@@ -110,7 +110,7 @@ foreach ($subDomain in $subDomains) {
             }
             catch {
                 $subDomainNotConformLog += "$domain.$subDomain " + $dnsRecord.Type
-                <#                write " ==================not to file =================== " $dnsRecord#>
+                Write-Output " ==================not to file =================== " $dnsRecord
             
             }
         }
