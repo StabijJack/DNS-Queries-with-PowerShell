@@ -21,8 +21,9 @@ $fileOutputPrefix = "Output"
 $fileErrorPrefix = "ERROR"
 $DNSServerList = @('8.8.8.8', '8.8.4.4')
 $DNSTypes = @('MX','SOA','TXT','NS')
-
-$domains = get-content $DomainsInputFile
+$modelDomain = 'presentdordrecht.nl'
+$domains = @($modelDomain)
+$domains += get-content $DomainsInputFile
 
 $subDomains = get-content $subDomainsInputFile
 
