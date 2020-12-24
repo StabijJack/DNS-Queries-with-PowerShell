@@ -17,23 +17,23 @@ $domains = @($modelDomain)
 $domains += get-content $DomainsInputFile
 # set dns record type for domain.
 $DNSTypes = @('MX', 'SOA', 'TXT', 'NS')
-# set CNAME/subdomains
+# set subdomains@DNSTYPE
 $subDomains = @(
-    '_dmarc',
-    '_sip._tls',
-    '_sipfederationtls._tcp',
-    'autodiscover',
-    'enterpriseenrollment',
-    'enterpriseregistration',
-    'ftp',
-    'imap',
-    'lyncdiscover',
-    'mail',
-    'pop',
-    'sip',
-    'smtp',
-    'www',
-    'x._domainkey'
+    '_dmarc@TXT',
+    '_sip._tls@SRV',
+    '_sipfederationtls._tcp@SRV',
+    'autodiscover@CNAME',
+    'enterpriseenrollment@CNAME',
+    'enterpriseregistration@CNAME',
+    'ftp@A',
+    'imap@A',
+    'lyncdiscover@CNAME',
+    'mail@A',
+    'pop@A',
+    'sip@CNAME',
+    'smtp@A',
+    'www@A',
+    'x._domainkey@TXT'
 )
 # set filename structure
 $filePrefix = "DNSRetrieval"
@@ -64,7 +64,7 @@ foreach ($domain in $domains) {
         }
         catch {
             $NotConformLog += $domain + $dnsRecord.Type
-            Write-Output " ==================not conform ModelDomain =================== " $dnsRecord
+            Write-Output "=$domain=$dnsRecord.Type============not conform ModelDomain =================== " $dnsRecord
         }
     }
     catch {
@@ -92,7 +92,7 @@ foreach ($DNSType in $DNSTypes) {
             }
             catch {
                 $DomainTypeNotConformLog += "$domain;$DNSType;"
-                Write-Output " ==================not conform ModelDomain =================== " $dnsRecord
+                Write-Output "=$domain=$DNSType==============not conform ModelDomain =================== " $dnsRecord
             }
         }
         catch {
@@ -110,19 +110,22 @@ $subDomainExistsNotConformFile = $dataDirectory + $filePrefix + $fileOutputPrefi
 $subDomainErrorLog = @("domain;subDomain")
 $subDomainNotConformLog = @("domain;subDomain")
 
-foreach ($subDomain in $subDomains) {
+foreach ($subDomainDNSType in $subDomains) {
+    $subDomainDNSTypeSplit = $subDomainDNSType.split('@')
+    $subDomain = $subDomainDNSTypeSplit[0]
+    $DNSType = $subDomainDNSTypeSplit[1]
     $subDomainWithoutPoint = $subDomain.replace('.', '')
     $subDomainExistsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExists-" + $subDomainWithoutPoint + ".csv"
     foreach ($domain in $domainsExist) {
         try {        
             $dnsRecord = 
-            Resolve-DnsName "$subDomain.$domain" -Type A -Server $DNSServerList -ErrorAction Stop
+            Resolve-DnsName "$subDomain.$domain" -Type $DNSType -Server $DNSServerList -ErrorAction Stop
             try {
                 $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
             }
             catch {
                 $subDomainNotConformLog += "$domain;$subDomain"
-                Write-Output " ==================not conform ModelDomain =================== " $dnsRecord
+                Write-Output "=$subDomain.$domain=$DNSType=============not conform ModelDomain =================== " $dnsRecord
             }
         }
         catch {
