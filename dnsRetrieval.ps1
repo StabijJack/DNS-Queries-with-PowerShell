@@ -121,7 +121,7 @@ foreach ($subDomainDNSType in $subDomains) {
             $dnsRecord = 
             Resolve-DnsName "$subDomain.$domain" -Type $DNSType -Server $DNSServerList -ErrorAction Stop
             try {
-                $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
+                $dnsRecord |Select-Object * | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
             }
             catch {
                 $subDomainNotConformLog += "$domain;$subDomain"
