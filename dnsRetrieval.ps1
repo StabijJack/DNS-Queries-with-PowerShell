@@ -3,44 +3,46 @@ $fileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{
     InitialDirectory = [Environment]::GetFolderPath('personal') 
     Filter = 'txt (*.txt)|*.txt'
 }
-
+# get domains File
 $fileBrowser.Title = 'select domains file'
 $null = $fileBrowser.ShowDialog()
 $domainsInputFile = $fileBrowser.filename
-
+# set data directory to source directory
 $fileBrowser.InitialDirectory = $fileBrowser.FileName
 $dataDirectory = Split-Path $fileBrowser.filename -parent 
 $dataDirectory += '\'
-
+# get cname/subdomains file
 $fileBrowser.Title = 'select CNAME SubDomain file'
 $null = $fileBrowser.ShowDialog()
 $subDomainsInputFile = $fileBrowser.filename
-
+# set dns record type for domain.
+$DNSTypes = @('MX','SOA','TXT','NS')
+# set filename structure
 $filePrefix = "DNSRetrieval"
 $fileOutputPrefix = "Output"
 $fileErrorPrefix = "ERROR"
+# set DNS Servers to use
 $DNSServerList = @('8.8.8.8', '8.8.4.4')
-$DNSTypes = @('MX','SOA','TXT','NS')
+# get domains
 $modelDomain = 'presentdordrecht.nl'
 $domains = @($modelDomain)
 $domains += get-content $DomainsInputFile
-
+#get CNAME/subdomains
 $subDomains = get-content $subDomainsInputFile
-
 # delete old output files
-$allOutputFiles = $dataDirectory + $filePrefix + $fileOutputPrefix + "*.csv"
+$allOutputFiles = $dataDirectory + $filePrefix + $fileOutputPrefix + "*"
 Remove-Item  $allOutputFiles
 # delete old ERROR files
-$allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*.txt"
+$allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*"
 Remove-Item  $allErrorFiles
 
 # check domain exists
 $domainsExist = @()
-$domainErrorLog = @()
-$domainNotConformLog = @()
+$domainErrorLog = @('Domain')
+$domainNotConformLog = @('Domain')
 $domainExistsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExists.csv"
-$domainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.txt"
-$domainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.txt"
+$domainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNot.csv"
+$domainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainExistsNotConform.csv"
 
 foreach ($domain in $domains) {
     try {        
@@ -51,8 +53,7 @@ foreach ($domain in $domains) {
         }
         catch {
             $NotConformLog += $domain + $dnsRecord.Type
-            Write-Output " ==================not to file =================== " $dnsRecord
-        
+            Write-Output " ==================not conform ModelDomain =================== " $dnsRecord
         }
     }
     catch {
@@ -62,11 +63,11 @@ foreach ($domain in $domains) {
 $domainErrorLog | Out-File $domainExistsNotFile
 $domainNotConformLog | Out-File $domainExistsNotConformFile
 
-$DomainTypeExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNot.txt"
-$DomainTypeExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNotConform.txt"
+$DomainTypeExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNot.csv"
+$DomainTypeExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "DomainTypeExistsNotConform.csv"
 
-$DomainTypeErrorLog = @()
-$DomainTypeNotConformLog = @()
+$DomainTypeErrorLog = @('Domain;Type')
+$DomainTypeNotConformLog = @('Domain;Type')
 
 foreach ($DNSType in $DNSTypes) {
     $DomainTypeWithoutPoint = $DNSType.replace('.','')
@@ -79,13 +80,12 @@ foreach ($DNSType in $DNSTypes) {
                 $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
             }
             catch {
-                $DomainTypeNotConformLog += "$domain.$DNSType " + $dnsRecord.Type
-                Write-Output " ==================not to file =================== " $dnsRecord
-            
+                $DomainTypeNotConformLog += "$domain;$DNSType;"
+                Write-Output " ==================not conform ModelDomain =================== " $dnsRecord
             }
         }
         catch {
-            $DomainTypeErrorLog += $domain + '.' + $DNSType
+            $DomainTypeErrorLog += "$domain;$DNSType;" + $dnsRecord.Type
         }
     }
 }
@@ -93,11 +93,11 @@ foreach ($DNSType in $DNSTypes) {
 $DomainTypeErrorLog | Out-File $DomainTypeExistsNotFile
 $DomainTypeNotConformLog | Out-File $DomainTypeExistsNotConformFile
 
-$subDomainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.txt"
-$subDomainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.txt"
+$subDomainExistsNotFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNot.csv"
+$subDomainExistsNotConformFile =$dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.csv"
 
-$subDomainErrorLog = @()
-$subDomainNotConformLog = @()
+$subDomainErrorLog = @("domain;subDomain")
+$subDomainNotConformLog = @("domain;subDomain")
 
 foreach ($subDomain in $subDomains) {
     $subDomainWithoutPoint = $subDomain.replace('.','')
@@ -110,13 +110,12 @@ foreach ($subDomain in $subDomains) {
                 $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
             }
             catch {
-                $subDomainNotConformLog += "$domain.$subDomain " + $dnsRecord.Type
-                Write-Output " ==================not to file =================== " $dnsRecord
-            
+                $subDomainNotConformLog += "$domain;$subDomain"
+                Write-Output " ==================not conform ModelDomain =================== " $dnsRecord
             }
         }
         catch {
-            $subDomainErrorLog += "$subDomain.$domain"
+            $subDomainErrorLog += "$domain;$subDomain"
         }
     }
 }
