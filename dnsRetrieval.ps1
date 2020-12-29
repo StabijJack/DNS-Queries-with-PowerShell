@@ -49,7 +49,7 @@ $allErrorFiles = $dataDirectory + $filePrefix + $fileErrorPrefix + "*"
 Remove-Item  $allErrorFiles
 # Expand all TXT strings to File
 $allTXTStringsFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "allTXTStrings.csv"
-$AllTXTStrings =@('domainKey;String')
+$AllTXTStrings =@('domainKey;String;extra1;extra2;extra3')
 
 # check domain exists and get A record
 $domainsExist = @()
@@ -91,16 +91,27 @@ foreach ($DNSType in $DNSTypes) {
         try {        
             $dnsRecord = 
             Resolve-DnsName $domain -Type $DNSType -Server $DNSServerList -ErrorAction Stop
-            if($DnsRecord.Type -eq 'TXT'){
-                $string = $dnsRecord |Select-Object -ExpandProperty strings
-                $AllTXTStrings += "$domain;$string"
+            if ($DNSType -eq 'TXT'){   
+                foreach ($record in $dnsRecord){
+                    $string = $record |Select-Object -ExpandProperty strings
+                    $AllTXTStrings += "$domain;$string"
+                }
+                try {
+                    $dnsRecord[0] | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+                }
+                catch {
+                    $DomainTypeNotConformLog += "$domain;$DNSType;"
+                    Write-Output "=$domain=$DNSType==============not conform ModelDomain =================== " $dnsRecord
+                }
             }
-            try {
-                $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
-            }
-            catch {
-                $DomainTypeNotConformLog += "$domain;$DNSType;"
-                Write-Output "=$domain=$DNSType==============not conform ModelDomain =================== " $dnsRecord
+            else{
+                try {
+                    $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+                }
+                catch {
+                    $DomainTypeNotConformLog += "$domain;$DNSType;"
+                    Write-Output "=$domain=$DNSType==============not conform ModelDomain =================== " $dnsRecord
+                }
             }
         }
         catch {
