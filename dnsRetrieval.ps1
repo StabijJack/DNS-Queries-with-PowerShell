@@ -93,11 +93,18 @@ foreach ($DNSType in $DNSTypes) {
             Resolve-DnsName $domain -Type $DNSType -Server $DNSServerList -ErrorAction Stop
             if ($DNSType -eq 'TXT'){   
                 foreach ($record in $dnsRecord){
-                    $string = $record |Select-Object -ExpandProperty strings
-                    $AllTXTStrings += "$domain;$string"
+                    if ($record.Type -eq $DNSType){
+                        $string = $record |Select-Object -ExpandProperty strings
+                        $AllTXTStrings += "$domain;$string"
+                    }
+                    else{
+                        $DomainTypeErrorLog += "$domain;$DNSType;" + $dnsRecord.Type
+                    }
                 }
                 try {
-                    $dnsRecord[0] | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+                    if($dnsRecord[0].Type -eq $DNSType){
+                        $dnsRecord[0] | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+                    }
                 }
                 catch {
                     $DomainTypeNotConformLog += "$domain;$DNSType;"
@@ -106,7 +113,12 @@ foreach ($DNSType in $DNSTypes) {
             }
             else{
                 try {
-                    $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+                    if($dnsRecord[0].Type -eq $DNSType){
+                        $dnsRecord | Export-Csv $DomainTypeExistsFile -NoTypeInformation -append -Delimiter ";"
+                    }
+                    else{
+                        $DomainTypeErrorLog += "$domain;$DNSType;" + $dnsRecord.Type
+                    }
                 }
                 catch {
                     $DomainTypeNotConformLog += "$domain;$DNSType;"
@@ -127,7 +139,7 @@ $subDomainExistsNotFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "Su
 $subDomainExistsNotConformFile = $dataDirectory + $filePrefix + $fileOutputPrefix + "SubDomainExistsNotConform.csv"
 
 $subDomainErrorLog = @("domain;subDomain")
-$subDomainNotConformLog = @("domain;subDomain")
+$subDomainNotConformLog = @("domain;subDomain;why")
 
 foreach ($subDomainDNSType in $subDomains) {
     $subDomainDNSTypeSplit = $subDomainDNSType.split('@')
@@ -145,10 +157,16 @@ foreach ($subDomainDNSType in $subDomains) {
             }
 
             try {
-                $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
+                if($dnsRecord.Type -eq $DNSType){
+                    $dnsRecord | Export-Csv $subDomainExistsFile -NoTypeInformation -append -Delimiter ";"
+                }
+                else{
+                    $subDomainErrorLog += "$domain;$subDomain"
+                }
             }
             catch {
-                $subDomainNotConformLog += "$domain;$subDomain"
+                $type=$dnsRecord.Type[0].tostring()
+                $subDomainNotConformLog += "$domain;$subDomain;$type"
                 Write-Output "=$subDomain.$domain=$DNSType=============not conform ModelDomain =================== " $dnsRecord
             }
         }
